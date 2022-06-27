@@ -7,15 +7,15 @@ bool VMPC(char*filename1,char*filename2,char*key){//VMPC-поточный шиф
     ifstream keyfile(key, ios::binary|ios::in);//файл с ключом
     if((!file.is_open())||(!cipherfile.is_open())||(!keyfile.is_open()))
         return false;
-    vector<short>s(256);//s-блок
+    vector<unsigned char>s(256);//s-блок
     for(int i=0; i<256;i++){
         s[i]=i;//начальная инициализация s-блока
     }
     int i, j=0;
-    vector<short>keyarr(256);//массив ключа
-    short keybyte;
+    vector<unsigned char>keyarr(256);//массив ключа
+    char keybyte;
     int ind=0;
-    while(keyfile.read((char *)&keybyte,sizeof(short))&&ind<256){
+    while(keyfile.read(&keybyte,sizeof(char))&&ind<256){
         //считываем ключ в массив
         keyarr[ind++]=keybyte;
     }
@@ -27,14 +27,14 @@ bool VMPC(char*filename1,char*filename2,char*key){//VMPC-поточный шиф
         swap(s[j],s[p]);//меняем местами два байта s-блока
     }
     i=j=0;
-    short byte;//вторая часть алгоритма - формирование псевдослучайного слова для побайтного шифрования
-    while(file.read((char *)&byte,sizeof(short))){
+    char byte;//вторая часть алгоритма - формирование псевдослучайного слова для побайтного шифрования
+    while(file.read(&byte,sizeof(char))){
         p = s[(p+s[i])%256];//вспомогательный индекс для выбора байта - псевдослучайного слова
-        short symb = s[(s[s[p]]+1)%256];//байт (псевдослучайное слово)
+        unsigned char symb = s[(s[s[p]]+1)%256];//байт (псевдослучайное слово)
         swap(s[i],s[p]);//тасуем байты в s-блоке
         i = (i+1)%256;//делим на 256 по модулю, чтобы не выходить за границы массива
-        short resbyte = symb^byte;//xor'им байт из s-блока с байтом исходного текста
-        cipherfile.write((char *)&resbyte, sizeof(short));//результат записываем в шифротекст
+        char resbyte = symb^byte;//xor'им байт из s-блока с байтом исходного текста
+        cipherfile.write(&resbyte, sizeof(char));//результат записываем в шифротекст
     }
   
     file.close();
@@ -52,8 +52,8 @@ long long getSizeFile(char*filename){//вычисляем размер файл�
 }
 void printBinaryFile(char*filename){//печать бинарного файла в виде последовательности битов
     ifstream file(filename, ios::binary);
-    short byte;
-    while(file.read((char *)&byte,sizeof(short))){
+    char byte;
+    while(file.read(&byte,sizeof(char))){
         cout<<bitset<8>(byte)<<" ";
     }
     file.close();
@@ -61,8 +61,8 @@ void printBinaryFile(char*filename){//печать бинарного файла
 void generateKey(char*filename, long long size){//генерация случайного ключа заданной длины
     ofstream keyfile(filename,ios::binary|ios::out);
     while(size>0){
-        short byte = rand()%256;
-        keyfile.write((char *)&byte, sizeof(short));
+        char byte = rand()%256;
+        keyfile.write(&byte, sizeof(char));
         size--;
     }
     keyfile.close();
